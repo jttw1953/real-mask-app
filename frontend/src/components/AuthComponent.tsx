@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from './supabaseAuth';
+import { supabase } from './SupabaseAuth'; // 🔴 make sure this matches the actual filename
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 interface AuthComponentProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function AuthComponent({ children }: AuthComponentProps) {
@@ -34,11 +36,16 @@ export default function AuthComponent({ children }: AuthComponentProps) {
     // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate('/login');
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        if (!session) {
+          navigate('/login');
+        } else {
+          // if user logs in while on this page, stop showing the loader
+          setLoading(false);
+        }
       }
-    });
+    );
 
     return () => {
       subscription.unsubscribe();
