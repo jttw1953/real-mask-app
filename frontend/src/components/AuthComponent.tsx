@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from './SupabaseAuth';
+import { supabase } from './supabaseAuth';
 
 interface AuthComponentProps {
   children: React.ReactNode;
