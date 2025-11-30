@@ -144,7 +144,7 @@ export function clearOverlayCache(overlayUrl?: string) {
 }
 
 /**
- * FIXED: Pass detected dimensions to callback
+ * Start frame processing with proper pipe configuration
  */
 export function startFrameProcessing(
   rtpPort: number,
@@ -173,6 +173,11 @@ a=recvonly`;
   const sdpPath = path.join('/tmp', `ffmpeg-${producerId}.sdp`);
   fs.writeFileSync(sdpPath, sdpContent);
   
+  // Will be updated when dimensions are detected
+  let actualWidth = 640;
+  let actualHeight = 480;
+  let frameSize = actualWidth * actualHeight * 3;
+  
   const command = ffmpeg()
     .setFfmpegPath(ffmpegPath)
     .input(sdpPath)
@@ -185,14 +190,17 @@ a=recvonly`;
       '-use_wallclock_as_timestamps', '1',
       '-reorder_queue_size', '0'
     ])
+    // CRITICAL FIX: Explicitly specify pipe:1 as output
+    .output('pipe:1')
     .outputOptions([
       '-f', 'image2pipe',
       '-pix_fmt', 'rgb24',
       '-vcodec', 'rawvideo',
       '-fps_mode', 'passthrough'
     ])
-    .on('start', () => {
+    .on('start', (commandLine) => {
       console.log('✅ FFmpeg decoder started');
+      console.log('📝 Command:', commandLine);
     })
     .on('stderr', (stderrLine) => {
       // Detect dimensions from FFmpeg output
@@ -222,12 +230,12 @@ a=recvonly`;
       try { fs.unlinkSync(sdpPath); } catch (e) {}
     });
 
+  // Get the output stream with proper error handling
   const stream = command.pipe();
   
-  // Will be updated when dimensions are detected
-  let actualWidth = 640;
-  let actualHeight = 480;
-  let frameSize = actualWidth * actualHeight * 3;
+  stream.on('error', (err) => {
+    console.error('❌ Stream pipe error:', err);
+  });
   
   let buffer = Buffer.alloc(0);
   let frameCount = 0;
@@ -257,7 +265,12 @@ a=recvonly`;
   
   setTimeout(() => {
     if (frameCount === 0) {
-      console.error('⏰ TIMEOUT: No frames after 10 seconds');
+      console.error('⏰ TIMEOUT: No frames received after 10 seconds');
+      console.error('   Possible issues:');
+      console.error('   1. No video data arriving at RTP port', rtpPort);
+      console.error('   2. Incorrect RTP parameters or codec mismatch');
+      console.error('   3. Network/firewall blocking UDP packets');
+      console.error('   4. Producer not properly connected to PlainTransport');
     }
   }, 10000);
   
@@ -265,7 +278,7 @@ a=recvonly`;
 }
 
 /**
- * Start FFmpeg encoder
+ * Start FFmpeg encoder with proper configuration
  */
 export async function startFrameEncoding(
   outputRtpPort: number,
@@ -287,8 +300,7 @@ export async function startFrameEncoding(
     .inputOptions([
       '-pix_fmt', 'rgb24',
       '-s', `${width}x${height}`,
-      '-r', '30',
-      '-re'  // Remove this - it adds delay
+      '-r', '30'
     ])
     .outputOptions([
       '-f', 'rtp',
@@ -307,6 +319,7 @@ export async function startFrameEncoding(
     .output(`rtp://127.0.0.1:${outputRtpPort}`)
     .on('start', (cmd) => {
       console.log(`✅ Encoder started (${width}x${height}) → ${outputRtpPort}`);
+      console.log('📝 Command:', cmd);
     })
     .on('stderr', (stderrLine) => {
       if (stderrLine.includes('error') || stderrLine.includes('Error')) {
