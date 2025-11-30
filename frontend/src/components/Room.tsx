@@ -12,7 +12,7 @@ import { DEFAULT_OVERLAY } from '../types/overlayType';
 import OverlaySelector from './OverlaySelector';
 import * as mediasoupClient from 'mediasoup-client';
 
-const URL = "http://localhost:3000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 export const Room = ({
     name,
@@ -109,7 +109,7 @@ export const Room = ({
 
     // Socket connection and event handlers
     useEffect(() => {
-        const socket = io(URL, {
+        const socket = io(BACKEND_URL, {
             transports: ['websocket', 'polling'],
             withCredentials: true,
             reconnection: true,
