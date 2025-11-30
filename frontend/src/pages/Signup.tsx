@@ -11,7 +11,7 @@ export default function Signup() {
   const [pw2, setPw2] = useState('');
   const [touched, setTouched] = useState<{ pw2?: boolean }>({});
   const [error, setError] = useState('');
-  const API_URL = 'http://localhost:3000';
+  const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
   const passwordsMatch = pw.length > 0 && pw2.length > 0 && pw === pw2;
   const canSubmit =

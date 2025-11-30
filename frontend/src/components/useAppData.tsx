@@ -37,7 +37,7 @@ type AppDataContextType = {
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
-const API_URL = 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 // Helper to get auth token
 async function getAuthToken(): Promise<string | null> {
