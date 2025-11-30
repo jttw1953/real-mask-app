@@ -14,7 +14,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: 'https://real-mask-app-frontend.onrender.com',
     methods: ['GET', 'POST'],
     credentials: true,
   },
