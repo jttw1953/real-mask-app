@@ -1,6 +1,6 @@
 import * as mediasoup from 'mediasoup';
-import type { Router, Worker } from 'mediasoup/node/lib/types';
-
+type Router = mediasoup.types.Router;
+type Worker = mediasoup.types.Worker;
 // Store worker and router
 let worker: Worker;
 let router: Router;
@@ -21,7 +21,7 @@ export async function initializeMediasoup() {
     console.log('✅ Mediasoup Worker created');
 
     // Log if worker dies
-    worker.on('died', (error) => {
+    worker.on('died', (error: Error) => {
       console.error('❌ Mediasoup Worker died:', error);
       process.exit(1);
     });

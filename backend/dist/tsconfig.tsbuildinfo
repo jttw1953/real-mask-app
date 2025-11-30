@@ -1,0 +1,1 @@
+{"root":["../src/app.ts","../src/managers/room.ts","../src/managers/roommanager.ts","../src/managers/user.ts","../src/managers/usermanager.ts","../src/supabase_api/encryption.ts","../src/supabase_api/env.d.ts","../src/supabase_api/supabase_api.ts","../index.ts"],"version":"5.9.3"}

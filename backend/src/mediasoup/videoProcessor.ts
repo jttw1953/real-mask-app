@@ -13,7 +13,9 @@ import { Writable } from 'stream';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-ffmpeg.setFfmpegPath(ffmpegStatic!);
+// Cast ffmpeg-static path to string
+const ffmpegPath = ffmpegStatic as unknown as string;
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 let faceDetector: faceLandmarksDetection.FaceLandmarksDetector | null = null;
 let poseDetector: poseDetection.PoseDetector | null = null;
@@ -76,9 +78,9 @@ export function bufferToCanvas(frameData: Buffer, width: number, height: number)
     const rgbIndex = i * 3;
     const rgbaIndex = i * 4;
     
-    imageData.data[rgbaIndex] = frameData[rgbIndex];
-    imageData.data[rgbaIndex + 1] = frameData[rgbIndex + 1];
-    imageData.data[rgbaIndex + 2] = frameData[rgbIndex + 2];
+    imageData.data[rgbaIndex] = frameData[rgbIndex]!;
+    imageData.data[rgbaIndex + 1] = frameData[rgbIndex + 1]!;
+    imageData.data[rgbaIndex + 2] = frameData[rgbIndex + 2]!;
     imageData.data[rgbaIndex + 3] = 255;
   }
   
@@ -95,9 +97,9 @@ export function canvasToBuffer(canvas: Canvas): Buffer {
     const rgbaIndex = i * 4;
     const rgbIndex = i * 3;
     
-    rgbBuffer[rgbIndex] = imageData.data[rgbaIndex];
-    rgbBuffer[rgbIndex + 1] = imageData.data[rgbaIndex + 1];
-    rgbBuffer[rgbIndex + 2] = imageData.data[rgbaIndex + 2];
+    rgbBuffer[rgbIndex] = imageData.data[rgbaIndex]!;
+    rgbBuffer[rgbIndex + 1] = imageData.data[rgbaIndex + 1]!;
+    rgbBuffer[rgbIndex + 2] = imageData.data[rgbaIndex + 2]!;
   }
   
   return rgbBuffer;
@@ -172,7 +174,7 @@ a=recvonly`;
   fs.writeFileSync(sdpPath, sdpContent);
   
   const command = ffmpeg()
-    .setFfmpegPath(ffmpegStatic!)
+    .setFfmpegPath(ffmpegPath)
     .input(sdpPath)
     .inputFormat('sdp')
     .inputOptions([
@@ -200,8 +202,8 @@ a=recvonly`;
         // Match resolution pattern like ", 640x480,"
         const match = stderrLine.match(/,\s*(\d{3,4})x(\d{3,4}),/);
         if (match) {
-          actualWidth = parseInt(match[1]);
-          actualHeight = parseInt(match[2]);
+          actualWidth = parseInt(match[1]!);
+          actualHeight = parseInt(match[2]!);
           frameSize = actualWidth * actualHeight * 3;
           console.log(`🎯 DETECTED RESOLUTION: ${actualWidth}x${actualHeight} (${frameSize} bytes/frame)`);
         }
@@ -279,7 +281,7 @@ export async function startFrameEncoding(
   const ssrc = rtpParameters.encodings[0]?.ssrc || Math.floor(Math.random() * 0xFFFFFFFF);
   
   const command = ffmpeg()
-    .setFfmpegPath(ffmpegStatic!)
+    .setFfmpegPath(ffmpegPath)
     .input('pipe:0')
     .inputFormat('rawvideo')
     .inputOptions([

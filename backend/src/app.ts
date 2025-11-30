@@ -1,6 +1,6 @@
 import express from 'express';
 import formidable from 'formidable';
-import { initializeMediasoup } from '../src/mediasoup/mediasoupServer.ts';
+import { initializeMediasoup } from '../src/mediasoup/mediasoupServer.js';
 import fs from 'fs';
 import {
   createUser,
