@@ -1,5 +1,5 @@
-//import { initializeMediasoup } from './src/mediasoup/mediasoupServer.js';
-//import {initializeVideoProcessor } from "./src/mediasoup/videoProcessor.js"
+import { initializeMediasoup } from './src/mediasoup/mediasoupServer.js';
+import {initializeVideoProcessor } from "./src/mediasoup/videoProcessor.js"
 import http from 'http';
 import { Server } from 'socket.io';
 import { app } from './src/app.js';
@@ -38,22 +38,18 @@ io.on('connection', (socket) => {
 
 // Initialize Mediasoup, then start server
 // Initialize both Mediasoup and Video Processor
-// Promise.all([
-//   initializeMediasoup(),
-//   initializeVideoProcessor()
-// ])
-//   .then(() => {
-//     console.log('✅ All systems ready, starting server...');
+Promise.all([
+  initializeMediasoup(),
+  initializeVideoProcessor()
+])
+  .then(() => {
+    console.log('✅ All systems ready, starting server...');
     
-//     server.listen(PORT, '0.0.0.0', () => {
-//       console.log(`✅ Server running on port ${PORT}`);
-//     });
-//   })
-//   .catch((error) => {
-//     console.error('❌ Failed to start server:', error);
-//     process.exit(1);
-//   });
-
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`✅ Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  });
