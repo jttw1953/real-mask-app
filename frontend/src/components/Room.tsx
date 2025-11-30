@@ -1,8 +1,8 @@
-// Room.tsx - Updated for Mediasoup
+// Room.tsx - Updated for Mediasoup (TypeScript Fixes)
 import { useEffect, useState, useRef } from "react";
 import { io, Socket } from 'socket.io-client';
-import { useLocation } from "react-router-dom";
-import { FaceMesh, Results } from '@mediapipe/face_mesh';
+import { FaceMesh } from '@mediapipe/face_mesh';
+import type { Results } from '@mediapipe/face_mesh';
 import { Camera } from '@mediapipe/camera_utils';
 import PageBackground from "./PageBackground";
 import { Mic, MicOff, Video, VideoOff, User } from 'lucide-react';
@@ -11,7 +11,6 @@ import type { Overlay } from '../types/overlayType';
 import { DEFAULT_OVERLAY } from '../types/overlayType';
 import OverlaySelector from './OverlaySelector';
 import * as mediasoupClient from 'mediasoup-client';
-import type { Device, Transport } from 'mediasoup-client/lib/types';
 
 const URL = "http://localhost:3000";
 
@@ -34,7 +33,6 @@ export const Room = ({
     const [copied, setCopied] = useState(false);
     const [connected, setConnected] = useState(false);
     const [remoteLandmarks, setRemoteLandmarks] = useState<any>(null);
-    const [faceMeshReady, setFaceMeshReady] = useState(false);
     const [localOverlayEnabled, setLocalOverlayEnabled] = useState(true);
     const [audioEnabled, setAudioEnabled] = useState(true);
     const [videoEnabled, setVideoEnabled] = useState(true);
@@ -52,20 +50,6 @@ export const Room = ({
     // Remote user's overlay state
     const [remoteOverlayUrl, setRemoteOverlayUrl] = useState<string>(DEFAULT_OVERLAY.url);
 
-    // Mediasoup state
-    const [sendTransport, setSendTransport] = useState<Transport | null>(null);
-    const [recvTransport, setRecvTransport] = useState<Transport | null>(null);
-    const [device, setDevice] = useState<Device | null>(null);
-    const [videoProducer, setVideoProducer] = useState<any>(null);
-    const [audioProducer, setAudioProducer] = useState<any>(null);
-    const [pendingProducers, setPendingProducers] = useState<Array<{ producerId: string, kind: string }>>([]);
-    const [videoConsumer, setVideoConsumer] = useState<any>(null);
-    const [audioConsumer, setAudioConsumer] = useState<any>(null);
-
-    // Mediasoup refs
-    const videoProducerRef = useRef<any>(null);
-    const audioProducerRef = useRef<any>(null);
-
     // Video element refs
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -73,10 +57,12 @@ export const Room = ({
     const remoteCanvasRef = useRef<HTMLCanvasElement>(null);
     
     // Mediasoup refs
-    const sendTransportRef = useRef<Transport | null>(null);
-    const recvTransportRef = useRef<Transport | null>(null);
-    const deviceRef = useRef<Device | null>(null);
+    const sendTransportRef = useRef<any>(null);
+    const recvTransportRef = useRef<any>(null);
+    const deviceRef = useRef<any>(null);
     const localStreamRef = useRef<MediaStream | null>(null);
+    const videoProducerRef = useRef<any>(null);
+    const audioProducerRef = useRef<any>(null);
     
     // MediaPipe refs
     const faceMeshRef = useRef<FaceMesh | null>(null);
@@ -88,8 +74,10 @@ export const Room = ({
     const selectedOverlayUrlRef = useRef<string>(DEFAULT_OVERLAY.url);
     const localOverlayOpacityRef = useRef<number>(0.7);
     const remoteOverlayOpacityRef = useRef<number>(0.7);
+    
+    // State for pending producers
+    const pendingProducersRef = useRef<Array<{ producerId: string, kind: string }>>([]);
 
-    const location = useLocation();
     const navigate = useNavigate();
 
     // Load available overlays based on userOverlays prop
@@ -377,7 +365,6 @@ export const Room = ({
 
             camera.start();
             cameraRef.current = camera;
-            setFaceMeshReady(true);
             console.log('✅ MediaPipe Face Mesh initialized');
         }
 
@@ -468,7 +455,6 @@ export const Room = ({
                     console.log('📥 Received router capabilities');
                     await newDevice.load({ routerRtpCapabilities });
                     deviceRef.current = newDevice;
-                    setDevice(newDevice);
                     
                     console.log('✅ Device loaded');
                     
@@ -523,7 +509,7 @@ export const Room = ({
                         });
 
                         sendTransportRef.current = transport;
-                        setSendTransport(transport);
+                        
                         // Produce video
                         if (localVideoTrack && videoEnabled) {
                             console.log('🎥 Starting video production');
@@ -540,7 +526,6 @@ export const Room = ({
                             });
                             
                             videoProducerRef.current = videoProducer;
-                            setVideoProducer(videoProducer);
                             console.log('✅ Video producer created');
                         }
 
@@ -552,7 +537,6 @@ export const Room = ({
                             });
                             
                             audioProducerRef.current = audioProducer;
-                            setAudioProducer(audioProducer);
                             console.log('✅ Audio producer created');
                         }
                         
@@ -587,31 +571,28 @@ export const Room = ({
                         });
 
                         recvTransportRef.current = transport;
-                        setRecvTransport(transport);
                         
                         console.log('✅ Receive transport created');
 
                         setTimeout(() => {
-                            setPendingProducers(current => {
-                                if (current.length > 0 && deviceRef.current) {
-                                    console.log(`📦 Processing ${current.length} pending producers`);
-                                    current.forEach(({ producerId, kind }) => {
-                                        console.log('✅ Consuming pending producer:', kind);
-                                        socket.emit('consume', {
-                                            transportId: transport.id,
-                                            producerId,
-                                            rtpCapabilities: deviceRef.current!.rtpCapabilities
-                                        });
+                            if (pendingProducersRef.current.length > 0 && deviceRef.current) {
+                                console.log(`📦 Processing ${pendingProducersRef.current.length} pending producers`);
+                                pendingProducersRef.current.forEach(({ producerId, kind }) => {
+                                    console.log('✅ Consuming pending producer:', kind);
+                                    socket.emit('consume', {
+                                        transportId: transport.id,
+                                        producerId,
+                                        rtpCapabilities: deviceRef.current!.rtpCapabilities
                                     });
-                                    return []; // Clear pending producers
-                                }
-                                return current;
-                            });
+                                });
+                                pendingProducersRef.current = [];
+                            }
                         }, 100);
                     }
                 };
 
                 socket.on('transport-created', handleTransportCreated);
+                
                 // Handle notification of new producer from other user
                 socket.on('new-producer', async ({ producerId, kind }: { producerId: string, kind: string }) => {
                     if (cleanup) return;
@@ -620,7 +601,7 @@ export const Room = ({
                     
                     if (!recvTransportRef.current || !deviceRef.current) {
                         console.log('⚠️ Receive transport not ready yet, storing for later');
-                        setPendingProducers(prev => [...prev, { producerId, kind }]);
+                        pendingProducersRef.current.push({ producerId, kind });
                         return;
                     }
                     
@@ -648,13 +629,12 @@ export const Room = ({
                     
                     if (params.kind === 'video') {
                         console.log('✅ Video consumer created');
-                        setVideoConsumer(consumer);
                         
                         // Set remote video track
                         if (remoteVideoRef.current) {
                             const stream = new MediaStream([consumer.track]);
                             remoteVideoRef.current.srcObject = stream;
-                                // ADD THIS DEBUG
+                            
                             console.log('🔍 Remote video element state:', {
                                 srcObject: !!remoteVideoRef.current.srcObject,
                                 paused: remoteVideoRef.current.paused,
@@ -663,6 +643,7 @@ export const Room = ({
                                 videoHeight: remoteVideoRef.current.videoHeight,
                                 muted: remoteVideoRef.current.muted
                             });
+                            
                             // CRITICAL FIX: Explicitly play the video
                             remoteVideoRef.current.play().catch(e => {
                                 console.error('❌ Error playing video:', e);
@@ -674,8 +655,6 @@ export const Room = ({
                     
                     if (params.kind === 'audio') {
                         console.log('✅ Audio consumer created');
-                        setAudioConsumer(consumer);
-                        
                         // Audio will play automatically through the video element
                     }
                     
@@ -701,7 +680,7 @@ export const Room = ({
                 recvTransportRef.current.close();
             }
         };
-    }, [connected, socket, meetingId]);
+    }, [connected, socket, meetingId, localVideoTrack, localAudioTrack, videoEnabled, audioEnabled]);
 
     // Draw face overlay with opacity support
     const drawFaceOverlay = (

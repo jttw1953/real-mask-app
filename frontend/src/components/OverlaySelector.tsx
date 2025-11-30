@@ -1,6 +1,6 @@
 // src/components/OverlaySelector.tsx
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import type { Overlay } from '../types/overlayType';
 import { X } from 'lucide-react';
 

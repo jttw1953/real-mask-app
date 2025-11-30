@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from './SupabaseAuth'; // 🔴 make sure this matches the actual filename
+import { supabase } from './supabaseAuth'; // 🔴 make sure this matches the actual filename
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 interface AuthComponentProps {

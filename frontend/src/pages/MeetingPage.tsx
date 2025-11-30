@@ -18,7 +18,7 @@ export const MeetingPage = () => {
     const [audioEnabled, setAudioEnabled] = useState(true);
     const [videoEnabled, setVideoEnabled] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [, setIsAuthenticated] = useState(false);
     const [userOverlays, setUserOverlays] = useState<Overlay[]>([]);
     
     const videoRef = useRef<HTMLVideoElement>(null);

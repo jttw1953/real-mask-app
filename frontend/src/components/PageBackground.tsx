@@ -1,4 +1,4 @@
-import React, { useState, useEffect, type PropsWithChildren } from "react";
+import { useState, useEffect, type PropsWithChildren } from "react";
 import Navbar from "./Navbar";
 import s from "./PageBackground.module.css";
 
