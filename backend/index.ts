@@ -3,7 +3,8 @@ import { Server } from 'socket.io';
 import { app } from './src/app.js';
 import { userManager } from './src/managers/userManager.js';
 
-const PORT = 3000;
+// Use environment variable or default to 3000
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 // Create HTTP server with Express app
 const server = http.createServer(app);
@@ -11,7 +12,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -35,5 +36,5 @@ io.on('connection', (socket) => {
 
 // Start server
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
