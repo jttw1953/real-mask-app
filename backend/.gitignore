@@ -1,0 +1,3 @@
+# hide db password
+.env
+/node_modules
