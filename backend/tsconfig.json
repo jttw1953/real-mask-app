@@ -29,7 +29,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": false
   },
   "include": ["src/**/*", "index.ts", "__tests__/**/*"],
   "exclude": ["node_modules", "dist"]
